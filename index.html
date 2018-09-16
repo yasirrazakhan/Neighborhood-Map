@@ -5,16 +5,35 @@
 	<meta name="viewport" content="width=device-width,initial-scale=1">
 	<meta charset="utf-8">
 	<link rel="stylesheet" type="text/css" href="css/styles.css">
+	<link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
 	<title>Neighborhood Map</title>
 </head>
 <body>
 
-<div id="map"></div>
+
+<div id ="navD" class="container">
+
+	<div id="mySidenav" class="sidenav">
+		<h3 id="mapLocation">Islamabad Location</h3>
+		<input data-bind="textInput:query" id="search-text" type="text" placeholder="Ex: Islamabad, Pakistan">
+		<ul class="search-list" data-bind = "foreach: filterPlaces">
+			<li id="search-item" data-bind = "text: title, click:popUpMarker"></li>
+		</ul>
+	</div>
+</div>
+
+			<div id= "nav">
+			<span id= "hamburger" onclick="openNav()">&#9776;</span>
+			</div>
+	<div id="map"></div>
+
+
 
 
 <script type="text/javascript" src="js/libs/knockout-3.4.2.js"></script>
 <script type="text/javascript" src="js/app.js"></script>
- <script async defer  src="https://maps.googleapis.com/maps/api/js?v=3&key=AIzaSyD31VrKLVGlcixFdl56N1zXfNgbrHb4uPc&callback=initMap">
+<script type="text/javascript" src="js/libs/jquery-3.js"></script>
+ <script async defer  src="https://maps.googleapis.com/maps/api/js?libraries=geometry&v=3&key=AIzaSyD31VrKLVGlcixFdl56N1zXfNgbrHb4uPc&callback=initMap">
  </script>
 </body>
 </html>
