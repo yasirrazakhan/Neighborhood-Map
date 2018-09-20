@@ -29,10 +29,10 @@ var locations = [{
         }
     },
     {
-        title: 'Blue Area',
+        title: 'NUST Islamabad',
         location: {
-            lat: 33.7173,
-            lng: 73.0708
+            lat: 33.6426,
+            lng: 72.9929
         }
     }
 
@@ -64,7 +64,9 @@ var Location = function(data) {
     var self = this;
     this.title = data.title;
     this.position = data.location;
-    this.wikiData = '';
+    // this.wikiData = '';
+    this.street = '';
+    this.city = '';
     this.shouldShowMessage = ko.observable(true);
 
     this.marker = new google.maps.Marker({
@@ -83,7 +85,7 @@ var Location = function(data) {
     }
 
     this.marker.addListener('click', function() {
-        populateInfoWindow(this, largeInfowindow, self.wikiData);
+        populateInfoWindow(this, largeInfowindow, self.street, self.city);
         toggleBounce(this);
     });
 
@@ -107,28 +109,25 @@ var Location = function(data) {
     });
 
 
-    //making request to wikipedia api code refrenced from udacity course
-    var wikiRequestTimeout = setTimeout(function() {
-        self.wikiData = "<p>No Articles Found</p>";
-    }, 3000);
 
-    var wikiUrl = 'https://en.wikipedia.org/w/api.php?action=opensearch&search= ' + this.title + '&format=json&callback=wikiCallback';
-    $.ajax({
-        url: wikiUrl,
-        dataType: "jsonp",
-        success: function(response) {
-            var articleList = response[1];
+    var Client_ID = 'O3MIHNCL5B0BIGZMOOJPZOT3STLKE1GTIUH0CIDRYJUMK045';
+    var Client_Secret = 'WURQAL0I5M0UGYODO1J5FNOID004LE5M0W1C3JJEC5IF5JK3';
 
-            for (var i = 0; i < articleList.length; i++) {
-                var articleStr = articleList[i];
-                var url = 'http://en.wikipedia.org/wiki/' + articleStr;
-
-                self.wikiData = '<li><a href="' + url + '">' + articleStr + '</a></li>';
-            };
-            clearTimeout(wikiRequestTimeout);
-
+    var foursquareURL = 'https://api.foursquare.com/v2/venues/search?ll=' + this.position.lat + ',' + this.position.lng + '&client_id=' + Client_ID + '&client_secret=' + Client_Secret + '&v=20160118' + '&query=' + this.title;
+    $.getJSON(foursquareURL,
+    function(data) {
+        var venues = data.response.venues[0];
+        if (venues.location.formattedAddress[0]){
+          self.street = venues.location.formattedAddress[0];
         }
+        if (venues.location.formattedAddress[1]) {
+           self.city = venues.location.formattedAddress[1];
+        }
+
+      }).fail(function() {
+        alert('Error Ocurred');
     });
+
 };
 
 
@@ -164,13 +163,17 @@ function ViewModel() {
 
 
 }
+//this function handels google map Api errors
+function googleError(){
+  alert('Could not fetch data');
+}
 
 //function to create infowindow and data associated with it code refrenced from udacity course.
-function populateInfoWindow(marker, infowindow, wikiArticle, wikiReq) {
+function populateInfoWindow(marker, infowindow, street, city) {
     // Check to make sure the infowindow is not already opened on this marker.
     if (infowindow.marker != marker) {
         infowindow.marker = marker;
-        infowindow.setContent('<div>' + marker.title + '<br>' + wikiArticle + '</div>');
+        infowindow.setContent('');
         infowindow.open(map, marker);
         // Make sure the marker property is cleared if the infowindow is closed.
         infowindow.addListener('closeclick', function() {
@@ -179,6 +182,8 @@ function populateInfoWindow(marker, infowindow, wikiArticle, wikiReq) {
 
         var streetViewService = new google.maps.StreetViewService();
         var radius = 50;
+        var infoContent = '<h4>' + marker.title + '</h4>' +
+            '<p>' + street + "<br>" + city + "</p>";
 
         //create a streetview image code refrenced from udacity course
         function getStreetView(data, status) {
@@ -186,7 +191,7 @@ function populateInfoWindow(marker, infowindow, wikiArticle, wikiReq) {
                 var nearStreetViewLocation = data.location.latLng;
                 var heading = google.maps.geometry.spherical.computeHeading(
                     nearStreetViewLocation, marker.position);
-                infowindow.setContent('<div>' + marker.title + '<br>' + wikiArticle + '</div><div id="pano"></div>');
+                infowindow.setContent(infoContent + '<div id="pano"></div>');
                 var panoramaOptions = {
                     position: nearStreetViewLocation,
                     pov: {
@@ -197,7 +202,7 @@ function populateInfoWindow(marker, infowindow, wikiArticle, wikiReq) {
                 var panorama = new google.maps.StreetViewPanorama(
                     document.getElementById('pano'), panoramaOptions);
             } else {
-                infowindow.setContent('<div>' + marker.title + '<br>' + wikiArticle + '</div>' +
+                infowindow.setContent(infoContent +
                     '<div>No Street View Found</div>');
             }
         }
