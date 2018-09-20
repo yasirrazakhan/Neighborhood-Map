@@ -64,7 +64,6 @@ var Location = function(data) {
     var self = this;
     this.title = data.title;
     this.position = data.location;
-    // this.wikiData = '';
     this.street = '';
     this.city = '';
     this.shouldShowMessage = ko.observable(true);
